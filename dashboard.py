@@ -84,7 +84,25 @@ def api_get(path: str) -> dict | None:
 def api_post(path: str, data: dict) -> dict | None:
     try:
         r = requests.post(f"{AGENT_URL}{path}", json=data, timeout=60)
-        return r.json()
+        if r.headers.get("Content-Type", "").startswith("application/json"):
+            return r.json()
+        # Fallback: show raw text if not JSON
+        st.error(f"Unexpected response from agent: {r.text[:500]}")
+        return None
+    except Exception as e:
+        st.error(f"Agent not reachable: {e}")
+        return None
+
+
+def api_post_multipart(path: str, data: dict, files: dict) -> dict | None:
+    """POST helper for multipart form-data (used for text + file queries)."""
+    try:
+        r = requests.post(f"{AGENT_URL}{path}", data=data, files=files, timeout=60)
+        if r.headers.get("Content-Type", "").startswith("application/json"):
+            return r.json()
+        # Fallback: show raw text if not JSON
+        st.error(f"Unexpected response from agent: {r.text[:500]}")
+        return None
     except Exception as e:
         st.error(f"Agent not reachable: {e}")
         return None
@@ -287,6 +305,55 @@ def main():
                     </div>""",
                     unsafe_allow_html=True,
                 )
+
+        st.markdown("---")
+        st.markdown("#### Ask with file context")
+        st.markdown("<p style='color: #666; font-size: 13px;'>Optionally attach an image, audio, video, PDF, or text file. The agent will use both your long-term memory and the file contents to answer.</p>", unsafe_allow_html=True)
+
+        col_q_file, col_btn = st.columns([3, 1])
+        with col_q_file:
+            question_file = st.text_input(
+                "Question with file",
+                key="question_with_file",
+                placeholder="What do you know about this document?",
+                label_visibility="collapsed",
+            )
+            uploaded_query_file = st.file_uploader(
+                "Attach file",
+                type=UPLOAD_EXTENSIONS,
+                key="query_file",
+                label_visibility="collapsed",
+            )
+        with col_btn:
+            run_with_file = st.button("🔍 Ask with File", use_container_width=True)
+
+        if run_with_file:
+            if not question_file.strip():
+                st.warning("Please enter a question.")
+            elif uploaded_query_file is None:
+                st.warning("Please attach a file.")
+            else:
+                files = {
+                    "file": (
+                        uploaded_query_file.name,
+                        uploaded_query_file.getvalue(),
+                        uploaded_query_file.type or "application/octet-stream",
+                    )
+                }
+                data = {"q": question_file}
+                with st.spinner("QueryAgent searching memory + file..."):
+                    t0 = time.time()
+                    result = api_post_multipart("/query_multimodal", data=data, files=files)
+                    elapsed = time.time() - t0
+                if result:
+                    st.markdown(
+                        f"""<div style="background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.15);
+                        border-radius: 12px; padding: 20px; margin: 16px 0;">
+                        <span style="font-size: 12px; color: #a78bfa;">{elapsed:.1f}s</span>
+                        <div style="color: #ddd; line-height: 1.7; margin-top: 8px;">{result.get('answer', '')}</div>
+                        </div>""",
+                        unsafe_allow_html=True,
+                    )
 
     with tab_memories:
         st.markdown("#### Stored Memories")

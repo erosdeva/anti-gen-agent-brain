@@ -9,7 +9,15 @@ Usage:
     python agent.py --consolidate-every 15   # consolidate every 15 min
 
 Query:
+    # Text-only query
     curl "http://localhost:8888/query?q=what+do+you+know"
+
+    # Text + media query (multipart form-data)
+    curl -X POST "http://localhost:8888/query_multimodal" \
+         -F "q=what do you know" \
+         -F "file=@example.png"
+
+Ingest:
     curl -X POST http://localhost:8888/ingest -d '{"text": "some info"}'
 """
 
@@ -471,6 +479,14 @@ class MemoryAgent:
     async def query(self, question: str) -> str:
         return await self.run(f"Based on my memories, answer: {question}")
 
+    async def query_with_file(self, question: str, file_bytes: bytes, mime_type: str) -> str:
+        """Answer a question using both long-term memory and a media file."""
+        prompt = (
+            "Use my stored memories together with the attached file to answer this question.\n\n"
+            f"Question: {question}"
+        )
+        return await self.run_multimodal(prompt, file_bytes, mime_type)
+
     async def status(self) -> str:
         return await self.run("Give me a status report on my memory system.")
 
@@ -556,6 +572,51 @@ def build_http(agent: MemoryAgent, watch_path: str = "./inbox"):
         answer = await agent.query(q)
         return web.json_response({"question": q, "answer": answer})
 
+    async def handle_query_multimodal(request: web.Request):
+        """Handle a query that includes both text and an uploaded media file."""
+        try:
+            reader = await request.multipart()
+
+            question: str | None = None
+            file_bytes: bytes | None = None
+            mime_type: str | None = None
+
+            async for part in reader:
+                if part.name == "q":
+                    text_value = (await part.text()).strip()
+                    if text_value:
+                        question = text_value
+                elif part.name == "file":
+                    filename = part.filename
+                    if not filename:
+                        continue
+                    file_bytes = await part.read()
+                    mime_type = (
+                        part.headers.get("Content-Type")
+                        or mimetypes.guess_type(filename)[0]
+                        or "application/octet-stream"
+                    )
+
+            if not question:
+                return web.json_response({"error": "missing 'q' field"}, status=400)
+            if file_bytes is None:
+                return web.json_response({"error": "missing 'file' upload"}, status=400)
+
+            answer = await agent.query_with_file(question, file_bytes, mime_type)  # type: ignore[arg-type]
+            return web.json_response(
+                {
+                    "question": question,
+                    "answer": answer,
+                    "mime_type": mime_type,
+                }
+            )
+        except Exception as e:
+            log.error(f"/query_multimodal error: {e}")
+            return web.json_response(
+                {"error": "internal_error", "detail": str(e)},
+                status=500,
+            )
+
     async def handle_ingest(request: web.Request):
         try:
             data = await request.json()
@@ -596,6 +657,7 @@ def build_http(agent: MemoryAgent, watch_path: str = "./inbox"):
         return web.json_response(result)
 
     app.router.add_get("/query", handle_query)
+    app.router.add_post("/query_multimodal", handle_query_multimodal)
     app.router.add_post("/ingest", handle_ingest)
     app.router.add_post("/consolidate", handle_consolidate)
     app.router.add_get("/status", handle_status)
