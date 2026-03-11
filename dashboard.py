@@ -84,6 +84,17 @@ def api_get(path: str) -> dict | None:
 def api_post(path: str, data: dict) -> dict | None:
     try:
         r = requests.post(f"{AGENT_URL}{path}", json=data, timeout=60)
+        if not r.ok:
+            # Try to surface any JSON error body, otherwise raw text
+            if r.headers.get("Content-Type", "").startswith("application/json"):
+                try:
+                    err = r.json()
+                except Exception:
+                    err = r.text[:500]
+            else:
+                err = r.text[:500]
+            st.error(f"Agent error ({r.status_code}): {err}")
+            return None
         if r.headers.get("Content-Type", "").startswith("application/json"):
             return r.json()
         # Fallback: show raw text if not JSON
@@ -98,6 +109,17 @@ def api_post_multipart(path: str, data: dict, files: dict) -> dict | None:
     """POST helper for multipart form-data (used for text + file queries)."""
     try:
         r = requests.post(f"{AGENT_URL}{path}", data=data, files=files, timeout=60)
+        if not r.ok:
+            # Try to surface any JSON error body, otherwise raw text
+            if r.headers.get("Content-Type", "").startswith("application/json"):
+                try:
+                    err = r.json()
+                except Exception:
+                    err = r.text[:500]
+            else:
+                err = r.text[:500]
+            st.error(f"Agent error ({r.status_code}): {err}")
+            return None
         if r.headers.get("Content-Type", "").startswith("application/json"):
             return r.json()
         # Fallback: show raw text if not JSON
@@ -345,12 +367,19 @@ def main():
                     t0 = time.time()
                     result = api_post_multipart("/query_multimodal", data=data, files=files)
                     elapsed = time.time() - t0
-                if result:
+                if not result:
+                    st.error("Multimodal query failed. Check agent errors above.")
+                elif "error" in result and not result.get("answer"):
+                    st.error(f"Agent returned an error: {result}")
+                else:
+                    answer_text = result.get("answer", "").strip()
+                    if not answer_text:
+                        answer_text = "(Agent returned an empty answer.)"
                     st.markdown(
                         f"""<div style="background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.15);
                         border-radius: 12px; padding: 20px; margin: 16px 0;">
                         <span style="font-size: 12px; color: #a78bfa;">{elapsed:.1f}s</span>
-                        <div style="color: #ddd; line-height: 1.7; margin-top: 8px;">{result.get('answer', '')}</div>
+                        <div style="color: #ddd; line-height: 1.7; margin-top: 8px;">{answer_text}</div>
                         </div>""",
                         unsafe_allow_html=True,
                     )
