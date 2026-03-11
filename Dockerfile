@@ -1,10 +1,17 @@
-FROM python:3.14.3  
+# Use an official Python runtime as a base image
+FROM python:3.12-slim
 
-EXPOSE 8080
+# Set the working directory in the container to /app
 WORKDIR /app
 
-COPY . ./
+# Copy the requirements file into the container
+COPY requirements.txt ./
 
-RUN pip install -r requirements.txt
+# Install any dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENTRYPOINT ["python", "main.py", "--dashboard-port=8080"]
+# Copy the rest of the application code into the container
+COPY . .
+
+# Define the command to run your application when the container starts
+CMD ["python", "main.py", "--dashboard-port=8080"]
