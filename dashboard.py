@@ -196,7 +196,7 @@ def main():
         st.markdown("<p style='text-align: center; color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px;'>Powered by</p>", unsafe_allow_html=True)
         logo_col1, logo_col2 = st.columns(2)
         with logo_col1:
-            st.image("docs/Gemini_logo.png", use_container_width=True)
+            st.image("docs/Deva_Enterprises.png", use_container_width=True)
         with logo_col2:
             st.image("docs/adk_logo.png", width=90)
         st.caption(f"Endpoint: `{AGENT_URL}`")
