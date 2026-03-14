@@ -32,41 +32,40 @@ UPLOAD_EXTENSIONS = [
 
 SAMPLE_TEXTS = [
     {
-        "title": "AI Agents in Production",
+        "title": "Why identification is important.",
         "text": (
-            "Anthropic released a report showing that 62% of Claude usage is now "
-            "code-related, with AI agents being the fastest growing category. "
-            "Companies are deploying agents for customer support, code review, "
-            "and data analysis. The key challenge remains reliability: agents "
-            "fail silently and need human oversight loops."
+            "Identifying generated AI content and synthetic media (such"
+            " as AI-created text, images, video, or audio) is increasingly"
+            " important for the public because these technologies can"
+            " influence information, trust, security, and democratic processes."
         ),
     },
     {
-        "title": "Meeting Notes: Q1 Planning",
+        "title": "Why provenance is treated as a secondary concern for large LLMs.",
         "text": (
-            "Discussed Q1 priorities: 1) Ship the new API by March 15, "
-            "2) Hire two backend engineers, 3) Reduce inference costs by 40% "
-            "by switching to smaller models for routing tasks. Sarah will lead "
-            "the API project. Budget approved for $50k in cloud compute."
+            "Most companies developing large language models (LLMs) treat content"
+            " identification and provenance as a secondary priority rather than a"
+            " primary one because of a combination of technical, economic, competitive,"
+            " and regulatory factors. While many companies publicly support transparency"
+            " and AI safety, several practical realities push these issues lower on"
+            " the corporate agenda."
         ),
     },
     {
-        "title": "Research: Memory in LLM Systems",
+        "title": "How do we ensure that society is able to function properly with GenAI content.",
         "text": (
-            "Current approaches to LLM memory: 1) Vector databases with RAG: "
-            "good for retrieval but no active processing. 2) Conversation "
-            "summarization: loses detail over time. 3) Knowledge graphs: "
-            "expensive to maintain. The gap: no system actively consolidates "
-            "and connects information like human memory does."
+            "Ensuring a healthy and trustworthy society in an era where generative AI content is"
+            " pervasive across media requires a combination of technology, governance, industry"
+            " standards, education, and platform responsibility. No single solution can address"
+            " the risks alone; instead, a multi-layered approach is necessary."
         ),
     },
     {
-        "title": "Product Idea: Smart Inbox",
+        "title": "The Benefits of Adversarial Agentic Systems",
         "text": (
-            "What if email had an AI layer that continuously reads, categorizes, "
-            "and summarizes incoming mail? Not just filtering: actually understanding "
-            "context across conversations. Competitors: Superhuman (fast UI, no AI "
-            "summary), Shortwave (some AI, limited memory)."
+            "Custom-built agentic AI systems—autonomous or semi-autonomous systems designed"
+            " to monitor, analyze, and respond to specific societal challenges—could be"
+            " extremely beneficial in managing risks from generative AI and synthetic media."
         ),
     },
 ]
@@ -181,19 +180,14 @@ def main():
         .stApp {
             background: linear-gradient(135deg, #f9f5ff 0%, #f5e9ff 40%, #f7f3ff 100%);
         }
+        /* Hide default Streamlit top banner and toolbar */
         header[data-testid="stHeader"] {
-            background: #f9f5ff;
+            display: none !important;
         }
         [data-testid="stToolbar"] {
-            background: #f9f5ff;
+            display: none !important;
         }
         .stMarkdown { color: #111827; }
-
-        /* Top-right Streamlit toolbar icons/buttons: make them black for contrast */
-        [data-testid="stToolbar"] * {
-            color: #111827 !important;
-            fill: #111827 !important;
-        }
 
         /* Tabs: non-selected = black, selected = purple */
         div[role="tablist"] button[role="tab"] {
@@ -246,10 +240,15 @@ def main():
             color: #111827 !important;
         }
 
-        /* Buttons: darker purple on hover for contrast */
+        /* Buttons: blue default, darker on hover for contrast */
+        .stButton > button {
+            background-color: #2563eb !important;  /* blue-600 */
+            border-color: #2563eb !important;
+            color: #f9fafb !important;
+        }
         .stButton > button:hover {
-            background-color: #4c1d95 !important;
-            border-color: #4c1d95 !important;
+            background-color: #1d4ed8 !important;  /* blue-700 */
+            border-color: #1d4ed8 !important;
             color: #f9fafb !important;
         }
 
@@ -270,25 +269,6 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # Sidebar
-    with st.sidebar:
-        st.markdown("### Agent Status")
-        stats = api_get("/status")
-        if stats:
-            st.markdown(f'<div class="stat-card" style="margin-bottom:8px;"><div class="stat-number" style="color:#4ade80;">●</div><div class="stat-label">Agent Online</div></div>', unsafe_allow_html=True)
-            st.markdown("### Memory Stats")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown(f'<div class="stat-card"><div class="stat-number">{stats.get("total_memories", 0)}</div><div class="stat-label">Memories</div></div>', unsafe_allow_html=True)
-            with col2:
-                st.markdown(f'<div class="stat-card"><div class="stat-number">{stats.get("unconsolidated", 0)}</div><div class="stat-label">Pending</div></div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="stat-card" style="margin-top:8px;"><div class="stat-number">{stats.get("consolidations", 0)}</div><div class="stat-label">Consolidations</div></div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="stat-card" style="margin-bottom:8px;"><div class="stat-number" style="color:#ef4444;">●</div><div class="stat-label">Agent Offline</div></div>', unsafe_allow_html=True)
-            st.info("Start the agent:\n```\npython agent.py\n```")
-
-        st.markdown("---")
-
     # Main
     st.markdown(
         """<div style="text-align: center; padding: 20px 0 10px;">
@@ -303,7 +283,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    tab_ingest, tab_query, tab_memories = st.tabs(["Ingest", "Query", "Memory Bank"])
+    tab_ingest, tab_query, tab_memories, tab_stats = st.tabs(["Ingest", "Query", "Memory Bank", "Stats"])
 
     with tab_ingest:
         st.markdown("#### Feed information into memory")
@@ -499,6 +479,51 @@ def main():
                         st.rerun()
         else:
             st.info("No memories yet. Ingest some information or drop files in ./inbox")
+
+    with tab_stats:
+        st.markdown("#### Agent & Memory Stats")
+        stats = api_get("/status")
+        if not stats:
+            st.info("Agent not reachable. Make sure the backend agent is running.")
+            return
+
+        st.markdown(
+            "<p style='color: #4b5563; font-size: 13px; text-align:center;'>Overview of the always-on memory agent.</p>",
+            unsafe_allow_html=True,
+        )
+
+        # Centered agent status indicator
+        col_status = st.columns(1)[0]
+        with col_status:
+            online_color = "#4ade80"
+            st.markdown(
+                f'<div class="stat-card" style="margin: 8px auto;"><div class="stat-number" style="color:{online_color};">●</div><div class="stat-label">Agent Online</div></div>',
+                unsafe_allow_html=True,
+            )
+
+        # Memory stats row across the page
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(
+                f'<div class="stat-card" style="margin-top:8px;"><div class="stat-number">{stats.get("total_memories", 0)}</div><div class="stat-label">Memories</div></div>',
+                unsafe_allow_html=True,
+            )
+        with col2:
+            st.markdown(
+                f'<div class="stat-card" style="margin-top:8px;"><div class="stat-number">{stats.get("unconsolidated", 0)}</div><div class="stat-label">Pending</div></div>',
+                unsafe_allow_html=True,
+            )
+        with col3:
+            st.markdown(
+                f'<div class="stat-card" style="margin-top:8px;"><div class="stat-number">{stats.get("consolidations", 0)}</div><div class="stat-label">Consolidations</div></div>',
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("---")
+        st.markdown(
+            "<p style='color: #4b5563; font-size: 13px; text-align:center;'>Used to view and to quickly confirm the health of the agent and memory store.</p>",
+            unsafe_allow_html=True,
+        )
 
 
 if __name__ == "__main__":
