@@ -198,18 +198,20 @@ def main():
             font-weight: 600;
         }
 
-        /* Inputs: high-contrast boxes */
+        /* Inputs: high-contrast boxes + visible caret */
         .stTextInput > div > div > input {
             background: #ffffff;
             color: #111827;
             border: 1px solid #8b5cf6;
             border-radius: 8px;
+            caret-color: #111827;
         }
         .stTextArea > div > div > textarea {
             background: #ffffff;
             color: #111827;
             border: 1px solid #8b5cf6;
             border-radius: 8px;
+            caret-color: #111827;
         }
         section[data-testid="stSidebar"] {
             background: #f3e8ff;
