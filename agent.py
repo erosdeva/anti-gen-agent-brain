@@ -563,7 +563,20 @@ async def consolidation_loop(agent: MemoryAgent, interval_minutes: int = 30):
 
 
 def build_http(agent: MemoryAgent, watch_path: str = "./inbox"):
-    app = web.Application()
+    async def error_middleware(app, handler):
+        async def middleware_handler(request):
+            try:
+                return await handler(request)
+            except Exception as e:
+                log.error(f"Unhandled server error for {request.path}: {e}")
+                return web.json_response(
+                    {"error": "internal_error", "path": request.path, "detail": str(e)},
+                    status=500,
+                )
+
+        return middleware_handler
+
+    app = web.Application(middlewares=[error_middleware])
 
     async def handle_query(request: web.Request):
         q = request.query.get("q", "").strip()
