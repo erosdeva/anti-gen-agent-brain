@@ -198,7 +198,7 @@ def main():
             font-weight: 600;
         }
 
-        /* Inputs: high-contrast boxes + visible caret */
+        /* Inputs: high-contrast boxes + visible caret + clear selection */
         .stTextInput > div > div > input {
             background: #ffffff;
             color: #111827;
@@ -206,12 +206,43 @@ def main():
             border-radius: 8px;
             caret-color: #111827;
         }
+        .stTextInput > div > div > input::selection {
+            background: #4c1d95;  /* dark purple highlight */
+            color: #f9fafb;
+        }
         .stTextArea > div > div > textarea {
             background: #ffffff;
             color: #111827;
             border: 1px solid #8b5cf6;
             border-radius: 8px;
             caret-color: #111827;
+        }
+        .stTextArea > div > div > textarea::selection {
+            background: #4c1d95;
+            color: #f9fafb;
+        }
+
+        /* File uploader: darker background + white text for strong contrast */
+        [data-testid="stFileUploader"] > div:first-child {
+            background: #4c1d95 !important;  /* dark purple */
+            border-radius: 8px;
+        }
+        [data-testid="stFileUploader"] .uploadedFileName,
+        [data-testid="stFileUploader"] span {
+            color: #f9fafb !important;
+        }
+
+        /* Uploaded file chips/list (bottom of screen): make icon and text black */
+        [data-testid="stFileUploaderFile"] svg,
+        [data-testid="stFileUploaderFile"] span {
+            color: #111827 !important;
+            fill: #111827 !important;
+        }
+
+        /* Generic message / alert boxes: high-contrast text on light backgrounds */
+        [data-testid="stNotification"],
+        [data-testid="stAlert"] {
+            color: #111827 !important;
         }
         section[data-testid="stSidebar"] {
             background: #f3e8ff;
