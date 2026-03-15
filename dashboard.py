@@ -219,7 +219,7 @@ def main():
         }
         .stTextArea > div > div > textarea::selection {
             background: #4c1d95;
-            color: #f9fafb;
+            color: #f9fafc;
         }
 
         /* File uploader: darker background + white text for strong contrast */
@@ -229,7 +229,7 @@ def main():
         }
         [data-testid="stFileUploader"] .uploadedFileName,
         [data-testid="stFileUploader"] span {
-            color: #f9fafb !important;
+            color: #f9fafc !important;
         }
 
         /* Uploaded file chips/list (bottom of screen): make icon and text black */
