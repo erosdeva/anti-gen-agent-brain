@@ -222,14 +222,35 @@ def main():
             color: #f9fafb;
         }
 
-        /* File uploader: darker background + white text for strong contrast */
-        [data-testid="stFileUploader"] > div:first-child {
-            background: #4c1d95 !important;  /* dark purple */
+        /* File uploader: blue background + white text for strong contrast */
+        [data-testid="stFileUploader"] > div:first-child,
+        [data-testid="stFileUploader"] > div:first-child > div,
+        [data-testid="stFileUploaderDropzone"],
+        [data-testid="stFileUploaderDropzoneInput"] ~ div,
+        section[data-testid="stFileUploader"] > label + div {
+            background: #2563eb !important;  /* blue-600, matches buttons */
+            background-color: #2563eb !important;
+            border-color: #1d4ed8 !important;
             border-radius: 8px;
         }
         [data-testid="stFileUploader"] .uploadedFileName,
-        [data-testid="stFileUploader"] span {
+        [data-testid="stFileUploader"] span,
+        [data-testid="stFileUploaderDropzone"] span,
+        [data-testid="stFileUploaderDropzone"] p,
+        [data-testid="stFileUploaderDropzone"] small {
             color: #f9fafb !important;
+        }
+        [data-testid="stFileUploaderDropzone"] svg {
+            fill: #f9fafb !important;
+            color: #f9fafb !important;
+        }
+        /* Browse files button: white with black text */
+        [data-testid="stFileUploaderDropzone"] button,
+        [data-testid="stFileUploaderDropzone"] button:hover,
+        [data-testid="stFileUploaderDropzone"] button:focus {
+            background-color: #ffffff !important;
+            border-color: #ffffff !important;
+            color: #111827 !important;
         }
 
         /* Uploaded file chips/list (bottom of screen): make icon and text black */
