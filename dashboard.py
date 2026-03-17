@@ -253,11 +253,30 @@ def main():
             color: #111827 !important;
         }
 
-        /* Uploaded file chips/list (bottom of screen): make icon and text black */
-        [data-testid="stFileUploaderFile"] svg,
-        [data-testid="stFileUploaderFile"] span {
+        /* Uploaded file chips/list (bottom of screen): dark text/icon on light background */
+        [data-testid="stFileUploaderFile"],
+        [data-testid="stFileUploaderFile"] > div {
+            background-color: #f1f5f9 !important;
+            border-radius: 6px !important;
+        }
+        [data-testid="stFileUploaderFile"] span,
+        [data-testid="stFileUploaderFile"] p,
+        [data-testid="stFileUploaderFile"] small,
+        [data-testid="stFileUploaderFile"] div,
+        [data-testid="stFileUploaderFile"] * {
             color: #111827 !important;
-            fill: #111827 !important;
+        }
+        [data-testid="stFileUploaderFile"] svg {
+            color: #111827 !important;
+            fill: none !important;
+        }
+        [data-testid="stFileUploaderFile"] svg path,
+        [data-testid="stFileUploaderFile"] svg polyline,
+        [data-testid="stFileUploaderFile"] svg line,
+        [data-testid="stFileUploaderFile"] svg rect,
+        [data-testid="stFileUploaderFile"] svg circle {
+            stroke: #111827 !important;
+            fill: none !important;
         }
 
         /* Generic message / alert boxes: high-contrast text on light backgrounds */
