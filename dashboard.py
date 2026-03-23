@@ -14,13 +14,11 @@ Usage:
 
 import json
 import time
-from pathlib import Path
 
 import requests
 import streamlit as st
 
 AGENT_URL = "http://localhost:8888"
-INBOX_DIR = Path("./inbox")
 
 UPLOAD_EXTENSIONS = [
     "txt", "md", "json", "csv", "log", "xml", "yaml", "yml",
@@ -28,46 +26,6 @@ UPLOAD_EXTENSIONS = [
     "mp3", "wav", "ogg", "flac", "m4a", "aac",
     "mp4", "webm", "mov", "avi", "mkv",
     "pdf",
-]
-
-SAMPLE_TEXTS = [
-    {
-        "title": "Why identification is important.",
-        "text": (
-            "Identifying generated AI content and synthetic media (such"
-            " as AI-created text, images, video, or audio) is increasingly"
-            " important for the public because these technologies can"
-            " influence information, trust, security, and democratic processes."
-        ),
-    },
-    {
-        "title": "Why provenance is treated as a secondary concern for large LLMs.",
-        "text": (
-            "Most companies developing large language models (LLMs) treat content"
-            " identification and provenance as a secondary priority rather than a"
-            " primary one because of a combination of technical, economic, competitive,"
-            " and regulatory factors. While many companies publicly support transparency"
-            " and AI safety, several practical realities push these issues lower on"
-            " the corporate agenda."
-        ),
-    },
-    {
-        "title": "How do we ensure that society is able to function properly with GenAI content.",
-        "text": (
-            "Ensuring a healthy and trustworthy society in an era where generative AI content is"
-            " pervasive across media requires a combination of technology, governance, industry"
-            " standards, education, and platform responsibility. No single solution can address"
-            " the risks alone; instead, a multi-layered approach is necessary."
-        ),
-    },
-    {
-        "title": "The Benefits of Adversarial Agentic Systems",
-        "text": (
-            "Custom-built agentic AI systems—autonomous or semi-autonomous systems designed"
-            " to monitor, analyze, and respond to specific societal challenges—could be"
-            " extremely beneficial in managing risks from generative AI and synthetic media."
-        ),
-    },
 ]
 
 
@@ -356,83 +314,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    tab_ingest, tab_query, tab_memories, tab_stats = st.tabs(["Ingest", "Query", "Memory Bank", "Stats"])
-
-    with tab_ingest:
-        st.markdown("#### Feed information into memory")
-        st.markdown("<p style='color: #4b5563; font-size: 13px;'>Paste text or drop files in the <code>./inbox</code> folder. The <strong>IngestAgent</strong> processes everything automatically.</p>", unsafe_allow_html=True)
-
-        input_text = st.text_area("Input", height=150, placeholder="Paste text here...", label_visibility="collapsed")
-
-        col_ingest, col_samples = st.columns([1, 1])
-        with col_ingest:
-            if st.button("Process into Memory", type="primary", use_container_width=True):
-                if input_text.strip():
-                    with st.spinner("IngestAgent processing..."):
-                        t0 = time.time()
-                        result = api_post("/ingest", {"text": input_text, "source": "dashboard"})
-                        elapsed = time.time() - t0
-                    if result:
-                        st.success(f"Processed in {elapsed:.1f}s")
-                        st.markdown(result.get("response", ""))
-
-        with col_samples:
-            st.markdown("<p style='color: #555; font-size: 12px;'>Or try a sample:</p>", unsafe_allow_html=True)
-            for s in SAMPLE_TEXTS:
-                if st.button(s["title"], use_container_width=True):
-                    with st.spinner(f"IngestAgent processing..."):
-                        t0 = time.time()
-                        result = api_post("/ingest", {"text": s["text"], "source": s["title"]})
-                        elapsed = time.time() - t0
-                    if result:
-                        st.success(f"**{s['title']}** processed in {elapsed:.1f}s")
-                        st.markdown(result.get("response", ""))
-
-        st.markdown("---")
-        st.markdown("#### 📎 Upload Files")
-        st.markdown("<p style='color: #4b5563; font-size: 13px;'>Upload images, audio, video, PDFs, or text files. "
-                    "They'll be saved to <code>./inbox</code> and processed automatically by the agent.</p>",
-                    unsafe_allow_html=True)
-
-        uploaded_files = st.file_uploader(
-            "Drop files here",
-            type=UPLOAD_EXTENSIONS,
-            accept_multiple_files=True,
-            label_visibility="collapsed",
-        )
-
-        if uploaded_files:
-            INBOX_DIR.mkdir(parents=True, exist_ok=True)
-            for uf in uploaded_files:
-                dest = INBOX_DIR / uf.name
-                if dest.exists():
-                    st.warning(f"**{uf.name}** already exists in inbox, skipping.")
-                    continue
-                dest.write_bytes(uf.getvalue())
-                ext = Path(uf.name).suffix.lower()
-                if ext in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}:
-                    icon = "🖼️"
-                elif ext in {".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac"}:
-                    icon = "🎵"
-                elif ext in {".mp4", ".webm", ".mov", ".avi", ".mkv"}:
-                    icon = "🎬"
-                elif ext == ".pdf":
-                    icon = "📑"
-                else:
-                    icon = "📄"
-                st.success(f"{icon} **{uf.name}** saved to inbox — agent will process it shortly.")
-
-        st.markdown("---")
-        st.markdown("#### 🔄 Consolidate Memories")
-        st.markdown("<p style='color: #4b5563; font-size: 13px;'>The <strong>ConsolidateAgent</strong> runs automatically every 30 minutes. Trigger it manually here.</p>", unsafe_allow_html=True)
-        if st.button("🔄 Run Consolidation", use_container_width=True):
-            with st.spinner("ConsolidateAgent processing..."):
-                t0 = time.time()
-                result = api_post("/consolidate", {})
-                elapsed = time.time() - t0
-            if result:
-                st.success(f"Consolidated in {elapsed:.1f}s")
-                st.markdown(result.get("response", ""))
+    tab_query, tab_memories, tab_stats = st.tabs(["Query", "Memory Bank", "Stats"])
 
     with tab_query:
         st.markdown("#### Ask your memory anything")
@@ -528,15 +410,7 @@ def main():
         data = api_get("/memories")
         if data and data.get("memories"):
             for m in data["memories"]:
-                col_card, col_del = st.columns([10, 1])
-                with col_card:
-                    render_memory_card(m)
-                with col_del:
-                    if st.button("🗑️", key=f"del_{m['id']}", help=f"Delete memory #{m['id']}"):
-                        result = api_post("/delete", {"memory_id": m["id"]})
-                        if result and result.get("status") == "deleted":
-                            st.toast(f"Deleted memory #{m['id']}")
-                            st.rerun()
+                render_memory_card(m)
 
             st.markdown("---")
             with st.expander("⚠️ Danger Zone"):
