@@ -412,18 +412,6 @@ def main():
             for m in data["memories"]:
                 render_memory_card(m)
 
-            st.markdown("---")
-            with st.expander("⚠️ Danger Zone"):
-                st.markdown("<p style='color: #ef4444; font-size: 13px;'>This will permanently delete all memories, consolidations, processed file history, <strong>and all files in the inbox folder</strong>.</p>", unsafe_allow_html=True)
-                if st.button("🗑️ Clear All Memories", type="primary", use_container_width=True):
-                    result = api_post("/clear", {})
-                    if result:
-                        files_del = result.get("files_deleted", 0)
-                        msg = f"Cleared {result.get('memories_deleted', 0)} memories"
-                        if files_del:
-                            msg += f" and {files_del} inbox files"
-                        st.toast(msg)
-                        st.rerun()
         else:
             st.info("No memories yet. Ingest some information or drop files in ./inbox")
 
